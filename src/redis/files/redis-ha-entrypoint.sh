@@ -177,10 +177,12 @@ function run_redis_in_foreground_mode() {
 #
 function main() {
 
-  if [[ verify_required_environment_variables -ne 0 ]]; then
+  verify_required_environment_variables
+
+  if [[ $? -ne 0 ]]; then
     print_error_message "Impossible enter in the Redis replication mode."
     exit 1
-  if
+  fi
 
   if [[ "$(get_current_uuid)" == "$(get_master_uuid)" ]]; then
     
