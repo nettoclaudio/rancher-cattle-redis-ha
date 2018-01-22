@@ -1,4 +1,11 @@
 #!/bin/bash
+#
+# Identify the Redis Replication master (aka Redis master) through the Rancher
+# Metadata service and connect to it as a Redis Sentinel.
+#
+# Warning: This script relies on Rancher Metadata service for obtain informa-
+# tion about Redis master (IP address, for instance). For that make sure 
+# Rancher Metadata works.
 set -e
 
 # Prints a message on standard error output through the syslog tool.
@@ -157,7 +164,7 @@ function prepare_sentinel_config_file() {
   fi
 
   if [[ ! -f "${sentinel_config_file}" ]]; then
-  
+
     envsubst '${REDIS_HA_SENTINEL_MASTER_NAME}:${REDIS_HA_SENTINEL_MASTER_HOSTNAME}:${REDIS_HA_SENTINEL_QUORUM}:${REDIS_HA_SENTINEL_PASSWORD}' < "${sentinel_config_file}.skel" > "${sentinel_config_file}"
   fi
 
