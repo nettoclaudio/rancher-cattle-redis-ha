@@ -47,7 +47,7 @@ function get_info_from_rancher_metadata_by_resource() {
   local rancher_metadata_version
 
   resource="${1}"
-  rancher_metadata_version="${2:-'2016-07-29'}"
+  rancher_metadata_version=${2:-"2016-07-29"}
 
   wget -qO- "http://rancher-metadata.rancher.internal/${rancher_metadata_version}/${resource}"
 }
