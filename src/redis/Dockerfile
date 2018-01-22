@@ -8,6 +8,8 @@ RUN apk update && \
     apk add bash && \
     rm /var/cache/apk/* && \
     chown -R redis:redis /redis-ha-entrypoint.sh && \
-    chmod +x /redis-ha-entrypoint.sh
+    chmod 540 /redis-ha-entrypoint.sh
+
+USER redis
 
 ENTRYPOINT [ "/redis-ha-entrypoint.sh" ]
