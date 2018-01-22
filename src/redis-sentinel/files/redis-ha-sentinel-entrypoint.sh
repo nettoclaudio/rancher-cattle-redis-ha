@@ -72,7 +72,7 @@ function verify_required_environment_variables() {
 
   if [[ -z "${REDIS_HA_SENTINEL_PASSWORD}" ]]; then
     exit_code=1
-/
+
     print_error_message "The REDIS_HA_SENTINEL_PASSWORD variable is not set (or is empty). Export it with the minimum acceptable quorum by either using the '-e' flag or on the docker-compose.yml."
   fi
 
