@@ -51,6 +51,8 @@ function get_info_from_rancher_metadata_by_resource() {
 #   REDIS_HA_SENTINEL_QUORUM - Minimun number of Redis Sentinels for detect 
 # master and start failover process if necessary.
 #
+#   REDIS_HA_SENTINEL_PASSWORD - The Redis AUTH credential.
+#
 # Arguments:
 #   None
 #
@@ -132,6 +134,8 @@ function get_master_ip_address() {
 #   REDIS_HA_SENTINEL_QUORUM - Minimun number of Redis Sentinels for detect 
 # master and start failover process if necessary.
 #
+#   REDIS_HA_SENTINEL_PASSWORD - The Redis AUTH credential.
+#
 # Arguments:
 #   $1 - A string that contains the address of the Redis master instance.
 #
@@ -153,7 +157,7 @@ function prepare_sentinel_config_file() {
   fi
 
   if [[ ! -f "${sentinel_config_file}" ]]; then
-
+]
     envsubst '${REDIS_HA_SENTINEL_MASTER_NAME}:${REDIS_HA_SENTINEL_MASTER_HOSTNAME}:${REDIS_HA_SENTINEL_QUORUM}:${REDIS_HA_SENTINEL_PASSWORD}' < "${sentinel_config_file}.skel" > "${sentinel_config_file}"
   fi
 
