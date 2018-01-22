@@ -153,7 +153,7 @@ function run_redis_in_foreground_mode() {
   local redis_replication_configs
 
   replication_role=${1}
-  redis_replication_configs="--masterauth ${REDIS_HA_MASTER_PASSWORD}"
+  redis_replication_configs="--requirepass ${REDIS_HA_MASTER_PASSWORD} --masterauth ${REDIS_HA_MASTER_PASSWORD}"
 
   if [[ "${replication_role}" == "slave" ]]; then
     master_ip_address=${2}
