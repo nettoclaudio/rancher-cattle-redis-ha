@@ -157,7 +157,7 @@ function prepare_sentinel_config_file() {
   fi
 
   if [[ ! -f "${sentinel_config_file}" ]]; then
-]
+  
     envsubst '${REDIS_HA_SENTINEL_MASTER_NAME}:${REDIS_HA_SENTINEL_MASTER_HOSTNAME}:${REDIS_HA_SENTINEL_QUORUM}:${REDIS_HA_SENTINEL_PASSWORD}' < "${sentinel_config_file}.skel" > "${sentinel_config_file}"
   fi
 
