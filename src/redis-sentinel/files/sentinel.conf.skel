@@ -1,4 +1,7 @@
+port 26379
+protected-mode no
 sentinel monitor ${REDIS_HA_SENTINEL_MASTER_NAME} ${REDIS_HA_SENTINEL_MASTER_HOSTNAME} 6379 ${REDIS_HA_SENTINEL_QUORUM}
+sentinel auth-pass ${REDIS_HA_SENTINEL_MASTER_NAME} ${REDIS_HA_SENTINEL_PASSWORD}
 sentinel down-after-milliseconds ${REDIS_HA_SENTINEL_MASTER_NAME} 5000
-sentinel failover-timeout ${REDIS_HA_SENTINEL_MASTER_NAME} 10000
 sentinel parallel-syncs ${REDIS_HA_SENTINEL_MASTER_NAME} 1
+sentinel failover-timeout ${REDIS_HA_SENTINEL_MASTER_NAME} 60000

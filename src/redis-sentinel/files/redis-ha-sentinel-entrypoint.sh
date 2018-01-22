@@ -65,7 +65,13 @@ function verify_required_environment_variables() {
   if [[ -z "${REDIS_HA_SENTINEL_QUORUM}" ]]; then
     exit_code=1
 
-    print_error_message "The REDIS_HA_SENTINEL_QUORUM variable is not set. Export it with the minimum acceptable quorum by either using the '-e' flag or on the docker-compose.yml."
+    print_error_message "The REDIS_HA_SENTINEL_QUORUM variable is not set (or is empty). Export it with the minimum acceptable quorum by either using the '-e' flag or on the docker-compose.yml."
+  fi
+
+  if [[ -z "${REDIS_HA_SENTINEL_PASSWORD}" ]]; then
+    exit_code=1
+/
+    print_error_message "The REDIS_HA_SENTINEL_PASSWORD variable is not set (or is empty). Export it with the minimum acceptable quorum by either using the '-e' flag or on the docker-compose.yml."
   fi
 
   return ${exit_code}
@@ -148,7 +154,7 @@ function prepare_sentinel_config_file() {
 
   if [[ ! -f "${sentinel_config_file}" ]]; then
 
-    envsubst '${REDIS_HA_SENTINEL_MASTER_NAME}:${REDIS_HA_SENTINEL_MASTER_HOSTNAME}:${REDIS_HA_SENTINEL_QUORUM}' < "${sentinel_config_file}.skel" > "${sentinel_config_file}"
+    envsubst '${REDIS_HA_SENTINEL_MASTER_NAME}:${REDIS_HA_SENTINEL_MASTER_HOSTNAME}:${REDIS_HA_SENTINEL_QUORUM}:${REDIS_HA_SENTINEL_PASSWORD}' < "${sentinel_config_file}.skel" > "${sentinel_config_file}"
   fi
 
   chmod 640 "${sentinel_config_file}"
