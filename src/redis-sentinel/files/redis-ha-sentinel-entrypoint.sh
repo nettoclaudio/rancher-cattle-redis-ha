@@ -40,7 +40,7 @@ function get_info_from_rancher_metadata_by_resource() {
   local rancher_metadata_version
 
   resource="${1}"
-  rancher_metadata_version="${2:-'2016-07-29'}"
+  rancher_metadata_version=${2:-"2016-07-29"}
 
   wget -qO- "http://rancher-metadata.rancher.internal/${rancher_metadata_version}/${resource}"
 }
@@ -137,7 +137,7 @@ function prepare_sentinel_config_file() {
   REDIS_HA_SENTINEL_MASTER_HOSTNAME=${1}
   export REDIS_HA_SENTINEL_MASTER_HOSTNAME
 
-  sentinel_config_file=${2:"/etc/redis/sentinel.conf"}
+  sentinel_config_file=${2:-"/etc/redis/sentinel.conf"}
 
   if [[ -z "${REDIS_HA_SENTINEL_MASTER_NAME}" ]]; then
     REDIS_HA_SENTINEL_MASTER_NAME="redis-ha-default"
@@ -169,7 +169,7 @@ function prepare_sentinel_config_file() {
 function run_redis_sentinel_in_foreground_mode() {
   local sentinel_config_file
 
-  sentinel_config_file=${1:"/etc/redis/sentinel.conf"}
+  sentinel_config_file=${1:-"/etc/redis/sentinel.conf"}
 
   exec redis-server "${sentinel_config_file}" --sentinel
 }
@@ -192,7 +192,7 @@ function main() {
   if [[ $? -ne 0 ]]; then
     print_error_message "Impossible initialize the Redis Sentinel."
     exit 1
-  fis
+  fi
 
   prepare_sentinel_config_file "$(get_master_ip_address)"
 
