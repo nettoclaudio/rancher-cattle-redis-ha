@@ -9,7 +9,7 @@ services:
   sentinel:
     image: nettoclaudio/racher-cattle-redis-ha-redis-sentinel:1.0.0-rancher1
     environment:
-      REDIS_HA_SENTINEL_NAME: ${redis_sentinel_master_name}
+      REDIS_HA_SENTINEL_MASTER_NAME: ${redis_sentinel_master_name}
       REDIS_HA_SENTINEL_QUORUM: ${redis_sentinel_quorum}
       REDIS_HA_SENTINEL_PASSWORD: ${redis_password}
     links:
