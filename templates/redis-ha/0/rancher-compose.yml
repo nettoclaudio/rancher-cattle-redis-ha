@@ -28,6 +28,8 @@ catalog:
 services:
   redis:
     scale: 2
+    start_on_create: true
 
-  redis-sentinel:
+  sentinel:
     scale: ${redis_sentinel_quorum}
+    start_on_create: true
