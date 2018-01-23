@@ -1,0 +1,11 @@
+name: Redis HA
+
+description: >
+  The in-memory data structure store + high availability powered by 
+  Redis Replication and Redis Sentinel.
+
+version: 1.0.0-rancher1
+
+category: Databases
+
+maintainer: Claudio Netto <nettoclaudio@ufrj.br>
