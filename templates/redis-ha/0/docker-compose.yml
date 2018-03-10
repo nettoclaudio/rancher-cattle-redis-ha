@@ -2,12 +2,12 @@ version: '2'
 
 services:
   redis:
-    image: nettoclaudio/racher-cattle-redis-ha-redis:1.0.0-rancher1
+    image: nettoclaudio/rancher-cattle-redis-ha-redis:1.0.0-rancher1
     environment:
       REDIS_HA_MASTER_PASSWORD: ${redis_password}
 
   sentinel:
-    image: nettoclaudio/racher-cattle-redis-ha-redis-sentinel:1.0.0-rancher1
+    image: nettoclaudio/rancher-cattle-redis-ha-redis-sentinel:1.0.0-rancher1
     environment:
       REDIS_HA_SENTINEL_MASTER_NAME: ${redis_sentinel_master_name}
       REDIS_HA_SENTINEL_QUORUM: ${redis_sentinel_quorum}
