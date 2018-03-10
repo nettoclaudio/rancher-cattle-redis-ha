@@ -25,6 +25,13 @@ catalog:
       required: false
       type: "string"
 
+    - variable: "debug_mode"
+      default: false
+      description: "Enable debug mode for more details about containers entrypoint."
+      label: "Debug"
+      required: false
+      type: boolean
+
 services:
   redis:
     scale: 2
