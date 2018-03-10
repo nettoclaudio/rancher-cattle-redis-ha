@@ -56,6 +56,8 @@ function get_info_from_rancher_metadata_by_resource() {
 #
 # Globals:
 #   REDIS_HA_MASTER_PASSWORD - A string that means the cluster credential.
+#   REDIS_HA_SENTINEL_MASTER_NAME - Name of Redis master group on the Redis 
+#  Sentinel service.
 #
 # Arguments:
 #   None
@@ -74,7 +76,80 @@ function verify_required_environment_variables() {
     print_error_message "The REDIS_HA_MASTER_PASSWORD environment variable is not set. Export it with the password being used to access the MASTER by either using the '-e' flag or on the docker-compose.yml. Remember to use the same password for both the Redis instances (master and slaves)."
   fi
 
+  if [[ -z "${REDIS_HA_SENTINEL_MASTER_NAME}" ]]; then
+    exit_code=1
+
+    print_error_message "The REDIS_HA_SENTINEL_MASTER_NAME environment variable is not set. Export it with the password being used to access the MASTER by either using the '-e' flag or on the docker-compose.yml. Remember to use the same password for both the Redis instances (master and slaves)."
+  fi
+
   return ${exit_code}
+}
+
+# Checks if Redis Sentinel service is available.
+#
+# Globals:
+#   None
+#
+# Arguments:
+#   sentinel_hostname - Redis Sentinel's hostname (or IP address).
+#   sentinel_port - Redis Sentinel's port.
+#
+# Returns:
+#   A status code number: 0 (success) or 1 (error).
+#
+function is_redis_sentinel_available() {
+  local sentinel_hostname
+  local sentinel_port
+  local sentinel_response
+  local exit_code=1
+
+  sentinel_hostname=${1}
+  sentinel_port=${2}
+
+  sentinel_response=$(redis-cli --raw -h "${sentinel_hostname}" -p "${sentinel_port}" PING)
+
+  if [[ $? -eq 0 ]] && [[ "${sentinel_response}" == "PONG" ]]; then
+    exit_code=0
+  fi
+
+  return ${exit_code}
+}
+
+# Get the current Redis master on the cluster by Redis Sentinel.
+#
+# Globals:
+#   REDIS_HA_SENTINEL_MASTER_NAME - Name of Redis master group on the Redis 
+#  Sentinel service.
+#
+# Arguments:
+#   sentinel_hostname - Redis Sentinel's hostname (or IP address). (default value: "sentinel")
+#   sentinel_port - Redis Sentinel's port. (default value: "26379")
+#
+# Returns:
+#   A string that contains the current Redis master IP address or an empty string if any error occurred.
+#
+function get_master_address_from_redis_sentinel() {
+  local sentinel_hostname
+  local sentinel_port
+  local sentinel_response
+  local redis_master_address
+
+  sentinel_hostname=${1:-"sentinel"}
+  sentinel_port=${2:-"26379"}
+
+  redis_master_address=""
+
+  is_redis_sentinel_available ${sentinel_hostname} ${sentinel_port}
+
+  if [[ $? -eq 0 ]]; then
+    sentinel_response=$(redis-cli --raw -h "${sentinel_hostname}" -p "${sentinel_port}" SENTINEL get-master-addr-by-name ${REDIS_HA_SENTINEL_MASTER_NAME})
+
+    if [[ $? -eq 0 ]]; then
+      redis_master_address=$(head -n 1 <<< "${sentinel_response}")
+    fi
+  fi
+
+  printf "%s" "${redis_master_address}"
 }
 
 # Request to Rancher Metadata service the container UUID such as is running in
@@ -113,8 +188,25 @@ function get_current_uuid() {
   get_info_from_rancher_metadata_by_resource "/self/container/uuid"
 }
 
-# Request to Rancher Metadata service the container IP such as is running in
-# the master replication mode.
+# Request to Rancher Metadata service the current container IP address.
+# 
+# Globals:
+#   None
+#
+# Returns:
+#   None
+#
+# Returns:
+#   A string of an IP address (e.g., 10.30.6.114.220).
+#
+function get_current_ip_address() {
+  
+  get_info_from_rancher_metadata_by_resource "/self/container/primary_ip"
+}
+
+# Request to Redis Sentinel the current Redis master's IP address. If Redis
+# Sentinel service isn't available, request to Rancher Metadata service the
+# container IP such as is running in the master replication mode.
 #
 # Globals:
 #   None
@@ -126,11 +218,18 @@ function get_current_uuid() {
 #   A string of an IP address (e.g., 10.30.6.114.220).
 #
 function get_master_ip_address() {
+  local master_address_from_redis_sentinel
   local master_uuid
 
-  master_uuid="$(get_master_uuid)"
+  master_address_from_redis_sentinel=$(get_master_address_from_redis_sentinel)
 
-  get_info_from_rancher_metadata_by_resource "/containers/${master_uuid}/primary_ip"
+  if [[ -n "${master_address_from_redis_sentinel}" ]]; then
+    printf "%s" ${master_address_from_redis_sentinel}
+  else
+    master_uuid="$(get_master_uuid)"
+
+    get_info_from_rancher_metadata_by_resource "/containers/${master_uuid}/primary_ip"
+  fi
 }
 
 # Executes the Redis instance based on your role.
@@ -176,21 +275,25 @@ function run_redis_in_foreground_mode() {
 #   None
 #
 function main() {
+  local instance_role
+  local redis_master_ip_address
 
   verify_required_environment_variables
 
   if [[ $? -ne 0 ]]; then
-    print_error_message "Impossible enter in the Redis replication mode."
+    print_error_message "Impossible entering on the Redis replication mode."
     exit 1
   fi
 
-  if [[ "$(get_current_uuid)" == "$(get_master_uuid)" ]]; then
-    
-    run_redis_in_foreground_mode "master"
-  else
+  redis_master_ip_address="$(get_master_ip_address)"
 
-    run_redis_in_foreground_mode "slave" "$(get_master_ip_address)"
+  if [[ "${redis_master_ip_address}" == "$(get_current_ip_address)" ]]; then
+    instance_role="master"
+  else
+    instance_role="slave"
   fi
+
+  run_redis_in_foreground_mode "${instance_role}" "${redis_master_ip_address}"
 }
 
 main

@@ -5,6 +5,7 @@ services:
     image: nettoclaudio/rancher-cattle-redis-ha-redis:1.0.0-rancher1
     environment:
       REDIS_HA_MASTER_PASSWORD: ${redis_password}
+      REDIS_HA_SENTINEL_MASTER_NAME: ${redis_sentinel_master_name}
 
   sentinel:
     image: nettoclaudio/rancher-cattle-redis-ha-redis-sentinel:1.0.0-rancher1

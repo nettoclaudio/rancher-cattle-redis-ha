@@ -6,21 +6,21 @@ catalog:
 
   questions:
     - variable: "redis_password"
-      description: "Redis authentication credential"
+      description: "A strong password for authentication of every client. Mind the Redis Security notes at https://redis.io/topics/security."
       label: "Redis password"
       required: true
       type: "password"
 
     - variable: "redis_sentinel_quorum"
       default: "2"
-      description: "The number of Sentinels that need to detect an error condition."
+      description: "The number of Redis Sentinels that need to detect an error condition. More details about it at https://redis.io/topics/sentinel."
       label: "Redis Sentinel quorum number"
       required: true
       type: "int"
 
     - variable: "redis_sentinel_master_name"
-      default: "redis-ha-default"
-      description: "The name of the Redis instances group (master and slaves)"
+      default: "redis-ha"
+      description: "The name of the Redis instance group (master and slaves)."
       label: "Redis Sentinel master name"
       required: false
       type: "string"
@@ -28,8 +28,6 @@ catalog:
 services:
   redis:
     scale: 2
-    start_on_create: true
 
   sentinel:
     scale: ${redis_sentinel_quorum}
-    start_on_create: true
