@@ -145,7 +145,7 @@ function get_master_address_from_redis_sentinel() {
     sentinel_response=$(redis-cli --raw -h "${sentinel_hostname}" -p "${sentinel_port}" SENTINEL get-master-addr-by-name ${REDIS_HA_SENTINEL_MASTER_NAME})
 
     if [[ $? -eq 0 ]]; then
-      redis_master_address=$(head -n 1 <<< "${sentinel_response}")
+      redis_master_address=$(echo "${sentinel_response}" | head -n 1)
     fi
   fi
 
@@ -295,5 +295,9 @@ function main() {
 
   run_redis_in_foreground_mode "${instance_role}" "${redis_master_ip_address}"
 }
+
+if [[ -n "${DEBUG_MODE}" ]]; then
+  set -x
+if
 
 main
