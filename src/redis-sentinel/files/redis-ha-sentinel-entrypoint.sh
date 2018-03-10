@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Identify the Redis Replication master (aka Redis master) through the Rancher
 # Metadata service and connect to it as a Redis Sentinel.

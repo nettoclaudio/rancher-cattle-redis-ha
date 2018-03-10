@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Identify the role (master or slave) of the current container in the cluster, 
 # load the defaults configurations (redis.conf) based on that role and launch 
