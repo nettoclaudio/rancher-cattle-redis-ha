@@ -218,6 +218,6 @@ function main() {
 
 if [[ -n "${DEBUG_MODE}" ]]; then
   set -x
-if
+fi
 
 main
