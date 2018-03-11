@@ -25,16 +25,27 @@ catalog:
       required: false
       type: "string"
 
+    - variable: "global_mode"
+      default: false
+      description: "Would you like to deploy Redis instances on every hosts?"
+      label: "Enable global mode?"
+      required: true
+      type: boolean
+
     - variable: "debug_mode"
       default: false
-      description: "Enable debug mode for more details about containers entrypoint."
-      label: "Debug"
+      description: "Would you like to get more details of instances entrypoint?"
+      label: "Enable debug mode?"
       required: false
       type: boolean
 
 services:
   redis:
+    {{- if ne .Values.global_mode "true" }}
     scale: 2
+    {{- end }}
 
   sentinel:
-    scale: ${redis_sentinel_quorum}
+    {{- if ne .Values.global_mode "true" }}
+    scale: {{inc $redis_sentinel_quorum}}
+    {{- end }}

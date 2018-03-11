@@ -9,6 +9,11 @@ services:
       REDIS_HA_SENTINEL_MASTER_NAME: ${redis_sentinel_master_name}
     labels:
       io.rancher.container.pull_image: always
+      {{- if eq .Values.global_mode "true" }}
+      io.rancher.scheduler.global: 'true'
+      {{- else }}
+      io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
+      {{- end }}
 
   sentinel:
     image: nettoclaudio/rancher-cattle-redis-ha-redis-sentinel:1.0.0-rancher1
@@ -19,5 +24,10 @@ services:
       REDIS_HA_SENTINEL_QUORUM: ${redis_sentinel_quorum}
     labels:
       io.rancher.container.pull_image: always
+      {{- if eq .Values.global_mode "true" }}
+      io.rancher.scheduler.global: 'true'
+      {{- else }}
+      io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
+      {{- end }}
     links:
       - redis
