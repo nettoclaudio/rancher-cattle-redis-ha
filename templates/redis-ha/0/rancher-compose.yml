@@ -41,11 +41,7 @@ catalog:
 
 services:
   redis:
-    {{- if ne .Values.global_mode "true" }}
     scale: 2
-    {{- end }}
 
   sentinel:
-    {{- if ne .Values.global_mode "true" }}
-    scale: {{inc $redis_sentinel_quorum}}
-    {{- end }}
+    scale: ${redis_sentinel_quorum}
