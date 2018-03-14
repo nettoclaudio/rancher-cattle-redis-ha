@@ -216,7 +216,7 @@ function main() {
   run_redis_sentinel_in_foreground_mode
 }
 
-if [[ -n "${DEBUG_MODE}" ]]; then
+if [[ -n "${DEBUG_MODE}" ]] && [[ "${DEBUG_MODE}" == "true" ]]; then
   set -x
 fi
 

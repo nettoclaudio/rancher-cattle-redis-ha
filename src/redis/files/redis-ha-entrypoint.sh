@@ -296,7 +296,7 @@ function main() {
   run_redis_in_foreground_mode "${instance_role}" "${redis_master_ip_address}"
 }
 
-if [[ -n "${DEBUG_MODE}" ]]; then
+if [[ -n "${DEBUG_MODE}" ]] && [[ "${DEBUG_MODE}" == "true" ]]; then
   set -x
 fi
 
