@@ -5,7 +5,7 @@
 
 ## Requirements
 
-1. For high-availability reasons, make sure that your [Environment]("https://rancher.com/docs/rancher/latest/en/environments/#what-is-an-environment" "Read about Rancher environment") has three [Hosts]("https://rancher.com/docs/rancher/v1.6/en/hosts/") at least.
+1. For high-availability reasons, make sure that your [Environment](https://rancher.com/docs/rancher/latest/en/environments/#what-is-an-environment "Read about Rancher Environment") has three [Hosts](https://rancher.com/docs/rancher/latest/en/hosts/ "Read about Rancher Host") at least.
 
 ## Installation
 
