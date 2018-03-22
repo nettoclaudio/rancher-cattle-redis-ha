@@ -2,7 +2,7 @@ version: '2'
 
 services:
   redis:
-    image: nettoclaudio/rancher-cattle-redis-ha-redis:1.0.0-rancher1
+    image: nettoclaudio/rancher-cattle-redis-ha-redis:1.1.0-rancher1
     environment:
       {{- if eq .Values.debug_mode "true" }}
       DEBUG_MODE: ${debug_mode}
@@ -17,7 +17,7 @@ services:
       {{- end }}
 
   sentinel:
-    image: nettoclaudio/rancher-cattle-redis-ha-redis-sentinel:1.0.0-rancher1
+    image: nettoclaudio/rancher-cattle-redis-ha-redis-sentinel:1.1.0-rancher1
     environment:
       {{- if eq .Values.debug_mode "true" }}
       DEBUG_MODE: ${debug_mode}
