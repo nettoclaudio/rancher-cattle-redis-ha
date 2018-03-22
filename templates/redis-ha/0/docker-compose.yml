@@ -8,7 +8,6 @@ services:
       DEBUG_MODE: ${debug_mode}
       {{- end }}
       REDIS_HA_MASTER_PASSWORD: ${redis_password}
-      REDIS_HA_SENTINEL_MASTER_NAME: ${redis_sentinel_master_name}
     labels:
       io.rancher.container.pull_image: always
       {{- if eq .Values.global_mode "true" }}
