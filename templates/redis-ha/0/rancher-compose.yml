@@ -42,6 +42,32 @@ catalog:
 services:
   redis:
     scale: 2
+    
+    health_check:
+      port: 6379
+      
+      interval: 500
+      response_timeout: 3000
+      initializing_timeout: 15000
+      reinitializing_timeout: 10000
+      
+      healthy_threshold: 3
+      unhealthy_threshold: 5
+      
+      strategy: none
 
   sentinel:
     scale: ${redis_sentinel_quorum}
+
+    health_check:
+      port: 26379
+      
+      interval: 500
+      response_timeout: 3000
+      initializing_timeout: 15000
+      reinitializing_timeout: 10000
+      
+      healthy_threshold: 3
+      unhealthy_threshold: 5
+      
+      strategy: none
