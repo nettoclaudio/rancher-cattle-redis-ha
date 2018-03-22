@@ -52,6 +52,136 @@ function get_info_from_rancher_metadata_by_resource() {
   wget -qO- "http://rancher-metadata.rancher.internal/${rancher_metadata_version}/${resource}"
 }
 
+# Executes a command on Redis instance.
+#
+# Globals:
+#   REDIS_HA_MASTER_PASSWORD - Credential to authenticate on Rancher server
+# before executing command.
+#
+# Arguments:
+#   hostname - Redis server hostname (or IP address).
+#
+#   command - The command to be executed on Redis server.
+#
+# Returns:
+#   a raw response of Redis command.
+#
+function execute_command_on_redis() {
+  local hostname
+  local command
+
+  hostname=${1}
+  command=${2}
+
+  redis-cli --raw -a "${REDIS_HA_MASTER_PASSWORD}" -h "${hostname}" ${command}
+}
+
+# Checks if the Redis server is available.
+#
+# Globals:
+#   None
+#
+# Arguments:
+#   hostname - Redis server hostname (or IP address).
+#
+# Returns:
+#   A status code number: 0 (success) or 1 (error).
+#
+function is_redis_available() {
+  local hostname
+  local response
+  local exit_code
+
+  hostname=${1}
+  
+  exit_code=1
+
+  response=$(execute_command_on_redis ${hostname} "PING")
+
+  if [[ $? -eq 0 ]] && [[ "${response}" == "PONG" ]]; then
+    exit_code=0
+  fi
+
+  return ${exit_code}
+}
+
+# Get Redis master address from another Redis instance. Ask to Redis server
+# which is your replication role to determine the Redis master address.
+#
+# Globals:
+#   None
+#
+# Arguments:
+#   hostname - Redis server hostname (or IP address).
+#
+# Returns:
+#   A string of an IP address (e.g., 10.30.6.114.220).
+#
+function get_redis_master_address_from_another_redis_server() {
+  local redis_master_address
+  local redis_response
+  local hostname
+
+  hostname=${1}
+
+  redis_response=$(execute_command_on_redis ${hostname} "ROLE")
+
+  if [[ $? -ne 0 ]]; then
+    print_error_message "Unexpected error at execution of ROLE command on Redis."
+  fi
+
+  role=$(printf "${redis_response}" | head -1)
+
+  if [[ "${role}" == "master" ]]; then
+    redis_master_address="${hostname}"
+  fi
+
+  if [[ "${role}" == "slave" ]]; then
+    redis_master_address=$(printf "${redis_response}" | head -2 | tail -1)
+  fi
+
+  printf "%s" "${redis_master_address}"
+}
+
+# Get addresses of the non-stopped Redis servers (containers) in the Rancher 
+# service.
+#
+# Globals:
+#   None
+#
+# Arguments:
+#   None
+#
+# Returns:
+#   A list of IP adresses (separeted by new line '\n').
+#
+function get_addresses_of_running_redis_containers() {
+  local number_of_containers
+  local last_index
+  local addresses
+  local ip
+
+  addresses=""
+
+  number_of_containers=$(get_info_from_rancher_metadata_by_resource "/self/service/containers" | wc -l)
+
+  last_index=$((${number_of_containers} - 1))
+
+  for index in $(seq 0 ${last_index}); do
+    state=$(get_info_from_rancher_metadata_by_resource "/self/service/containers/${index}/state")
+
+    if [[ "${state}" == "stopped" ]]; then
+      continue
+    fi
+
+    ip=$(get_info_from_rancher_metadata_by_resource "/self/service/containers/${index}/primary_ip")
+
+    addresses="${ip}\n${addresses}"
+  done
+
+  printf ${addresses}
+}
+
 # Checks if the required environment variables are set.
 #
 # Globals:
@@ -77,42 +207,6 @@ function verify_required_environment_variables() {
   return ${exit_code}
 }
 
-# Request to Rancher Metadata service the container UUID such as is running in
-# the master replication mode.
-# 
-# Warning: The master instance will be the first container requested by Rancher.
-#          There are no ways to select the Redis master manually for now.
-#
-# Globals:
-#   None
-#
-# Arguments:
-#   None
-#
-# Returns:
-#   A string of an UUID (e.g., 319af1b9-feb7-448d-8dec-7c42c2a1e9ad).
-#
-function get_master_uuid() {
-  
-  get_info_from_rancher_metadata_by_resource "/self/service/containers/0/uuid"
-}
-
-# Request to Rancher Metadata service the current container UUID.
-# 
-# Globals:
-#   None
-#
-# Arguments:
-#   None
-#
-# Returns:
-#   A string of an UUID (e.g., 319af1b9-feb7-448d-8dec-7c42c2a1e9ad).
-#
-function get_current_uuid() {
-  
-  get_info_from_rancher_metadata_by_resource "/self/container/uuid"
-}
-
 # Request to Rancher Metadata service the current container IP address.
 # 
 # Globals:
@@ -129,8 +223,7 @@ function get_current_ip_address() {
   get_info_from_rancher_metadata_by_resource "/self/container/primary_ip"
 }
 
-# Request to Rancher Metadata service the container IP such as is running in 
-# the master replication mode.
+# Get the Redis master address. 
 #
 # Globals:
 #   None
@@ -142,11 +235,32 @@ function get_current_ip_address() {
 #   A string of an IP address (e.g., 10.30.6.114.220).
 #
 function get_master_ip_address() {
-  local master_uuid
-
-  master_uuid="$(get_master_uuid)"
+  local master_address
+  local addresses
+  local address
+  local fallback_master_address
   
-  get_info_from_rancher_metadata_by_resource "/containers/${master_uuid}/primary_ip"
+  addresses=$(get_addresses_of_running_redis_containers)
+
+  fallback_master_address=$(printf "${addresses}" | head -1)
+
+  for address in ${addresses}; do
+    is_redis_available "${address}"
+
+    if [[ $? -ne 0 ]]; then
+      continue
+    fi
+
+    master_address=$(get_redis_master_address_from_another_redis_server ${address})
+    
+    break
+  done
+
+  if [[ -z "${master_address}" ]]; then
+    master_address="${fallback_master_address}"
+  fi
+
+  printf "${master_address}"
 }
 
 # Executes the Redis instance based on your role.
